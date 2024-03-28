@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dólar em Reais</title>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div>
+<h1>USD/BRL - Dólar Americano Real Brasileiro</h1>
+<p id="usd_brl_value"></p>
+<p id="var_bid"></p>
+<p id="pct_change"></p>
+<p id="server_time"></p> <!-- Element to display server time -->
+</div>
+ 
+<script>
+$(document).ready(function(){
+    function atualizarValorUSD() {
+        $.getJSON('/get_usd_value')
+        .done(function(data) {
+            var usd_brl_value = parseFloat(data.usd_brl_value).toFixed(4);
+            var var_bid = parseFloat(data.var_bid).toFixed(4);
+            var pct_change = data.pct_change;
+            
+            $('#usd_brl_value').text(`R$ ${usd_brl_value}`);
+
+            var varBidHtml = `Variação: ${var_bid}`;
+            if (parseFloat(var_bid) > 0) {
+                varBidHtml += `<span style="color:green;"> \u2191 </span>`;
+            } else if (parseFloat(var_bid) < 0) {
+                varBidHtml += `<span style="color:red;"> \u2193 </span>`;
+            }
+            $('#var_bid').html(varBidHtml);
+
+            var pctChangeHtml = `Variação percentual: ${pct_change}`;
+            if (parseFloat(pct_change) > 0) {
+                pctChangeHtml += `<span style="color:green;"> \u2191 </span>`;
+            } else if (parseFloat(pct_change) < 0) {
+                pctChangeHtml += `<span style="color:red;"> \u2193 </span>`;
+            }
+            $('#pct_change').html(pctChangeHtml);
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            console.error(`AJAX request failed: ${textStatus}, ${errorThrown}`);
+        });
+    }
+
+    function updateServerTime() {
+        $.getJSON('/get_server_time')
+        .done(function(data) {
+            $('#server_time').text(`Hora do servidor: ${data.server_time}`);
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            console.error(`Failed to fetch server time: ${textStatus}, ${errorThrown}`);
+        });
+    }
+
+    atualizarValorUSD();
+    updateServerTime();
+
+    setInterval(atualizarValorUSD, 15000);
+    setInterval(updateServerTime, 1);
+});
+</script>
+</body>
+</html>
